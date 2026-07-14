@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  FlatList,
   Image,
   SafeAreaView,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -10,41 +12,108 @@ import {
   View
 } from 'react-native';
 
-// ข้อมูลสินค้าจำลอง (คงเดิมตามโจทย์)
-const products = [
-  {
-    id: '1',
-    name: 'PUBG: BATTLEGROUNDS',
-    stock: 999, 
-    category: 'แอ็คชัน, ผจญภัย, ผู้เล่นหลายคนจำนวนมาก, เล่นฟรี',
-    location: 'KRAFTON, Inc.', 
-    status: 'Installed', // สถานะเช่น ติดตั้งแล้ว, กำลังลดราคา, หรืออยู่ในคลัง
-    imageUrl: 'https://tse1.mm.bing.net/th/id/OIP.Gytgjw17v3l6XITcr7fsQAHaEK?r=0&rs=1&pid=ImgDetMain&o=7&rm=3'
-  },
-  {
-    id: '2',
-    name: 'Apex Legends™',
-    stock: 999,
-    category: 'แอ็คชัน, ผจญภัย, เล่นฟรี',
-    location: 'Respawn',
-    status: 'In Library',
-    imageUrl: 'https://th.bing.com/th?id=OIF.6Xj6Y%2fsfsf4BP480Mi7ybA&r=0&rs=1&pid=ImgDetMain&o=7&rm=3'
-  },
-  {
-    id: '3',
-    name: 'Overwatch®',
-    stock: 999,
-    category: 'แอ็คชัน, เล่นฟรี',
-    location: 'Blizzard Entertainment, Inc.',
-    status: 'On Sale',
-    imageUrl: 'https://tse1.mm.bing.net/th/id/OIF.ZKH8zatq1mtUSRnbwqsTIg?r=0&rs=1&pid=ImgDetMain&o=7&rm=3'
-  }
-];
+// 1. ประกาศโครงสร้าง TypeScript Interface เพื่อรองรับข้อมูลจาก JSON ของอาจารย์
+interface Product {
+  id: string;
+  name: string;
+  stock: number;
+  stock_text: string;
+  category: string;
+  location_count: number;
+  location_text: string;
+  badge_status: string;
+  image_url: string;
+}
 
 export default function App() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // 2. ลิงก์ดึงข้อมูลไฟล์ JSON โดยตรงจาก GitHub (แก้ไขให้เป็นของคุณได้เลยครับ)
+  const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/warit655/Inventory/refs/heads/master/sn_product.json?token=GHSAT0AAAAAAEBLAIRJ64SRDYEN3I2FC5FO2SWD4YQ';
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch(GITHUB_JSON_URL);
+      if (!response.ok) {
+        throw new Error('Failed to fetch data');
+      }
+      const data = await response.json();
+      setProducts(data);
+      setLoading(false);
+    } catch (err) {
+      setError((err as Error).message);
+      setLoading(false);
+    }
+  };
+
+  // 3. ฟังก์ชันสำหรับเรนเดอร์แต่ละรายการเกม (ดีไซน์ธีม Steam มืด-ฟ้าตามที่คุณออกแบบไว้)
+  const renderItem = ({ item }: { item: Product }) => {
+    const isLowStock = item.badge_status === 'Low in stock';
+
+    return (
+      <View style={styles.productCard}>
+        <Image
+          source={{ uri: item.image_url }}
+          style={styles.productImage}
+          resizeMode="cover"
+        />
+        <View style={styles.productInfo}>
+          <View style={styles.productDetails}>
+            <Text style={styles.stockText}>Stock: {item.stock_text}</Text>
+            <Text style={styles.categoryText}>Category: {item.category}</Text>
+            <Text style={styles.locationText}>Developer: {item.location_text}</Text>
+          </View>
+          <View style={styles.productActions}>
+            <TouchableOpacity style={[
+              styles.statusButton,
+              isLowStock && { borderColor: '#f43f5e' } // กรอบแดงถ้าใกล้หมด
+            ]}>
+              <Text style={[
+                styles.statusText,
+                isLowStock && { color: '#f43f5e' } // อักษรแดงถ้าใกล้หมด
+              ]}>{item.badge_status}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.moreButton}>
+              <Text style={styles.moreIcon}>›</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <Text style={styles.productName}>{item.name}</Text>
+      </View>
+    );
+  };
+
+  // 4. แสดง Spinner หมุนระหว่่างที่กำลังดึงข้อมูลจากอินเทอร์เน็ต
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#66c0f4" />
+        <Text style={styles.loadingText}>Loading products from GitHub...</Text>
+      </View>
+    );
+  }
+
+  // 5. แสดงกล่องแจ้งเตือนสีแดงหากลิงก์เสียหรือดึงข้อมูลไม่ได้
+  if (error) {
+    return (
+      <View style={styles.centerContainer}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchProducts}>
+          <Text style={styles.retryText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // 6. ส่วนการแสดงผลหลักหน้าจอหลัก
   return (
     <SafeAreaView style={styles.container}>
-      {/* เปลี่ยนสี Status Bar ให้เข้ากับธีมมืด */}
       <StatusBar barStyle="light-content" backgroundColor="#171a21" />
       
       {/* Top Menu / Header */}
@@ -52,7 +121,7 @@ export default function App() {
         <TouchableOpacity style={styles.menuButton}>
           <Text style={styles.menuIcon}>≡</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>STORE</Text>
+        <Text style={styles.headerTitle}>STEAM STORE</Text>
         <TouchableOpacity style={styles.profileButton}>
           <Text style={styles.profileIcon}>👤</Text>
         </TouchableOpacity>
@@ -77,34 +146,15 @@ export default function App() {
         </TouchableOpacity>
       </View>
 
-      {/* Products List Section */}
-      <ScrollView style={styles.productsList} showsVerticalScrollIndicator={false}>
-        {products.map((product) => (
-          <View key={product.id} style={styles.productCard}>
-            <Image
-              source={{ uri: product.imageUrl }}
-              style={styles.productImage}
-              resizeMode="cover"
-            />
-            <View style={styles.productInfo}>
-              <View style={styles.productDetails}>
-                <Text style={styles.stockText}>Stock: {product.stock} in stock</Text>
-                <Text style={styles.categoryText}>Category: {product.category}</Text>
-                <Text style={styles.locationText}>Location: {product.location}</Text>
-              </View>
-              <View style={styles.productActions}>
-                <TouchableOpacity style={styles.statusButton}>
-                  <Text style={styles.statusText}>{product.status}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.moreButton}>
-                  <Text style={styles.moreIcon}>›</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <Text style={styles.productName}>{product.name}</Text>
-          </View>
-        ))}
-      </ScrollView>
+      {/* เปลี่ยนมาใช้ FlatList แทน ScrollView ของเดิมเพื่อประสิทธิภาพที่ดียิ่งขึ้นตามที่อาจารย์แนะนำ */}
+      <FlatList
+        data={products}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.productsList}
+        showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+      />
 
       {/* Bottom Menu */}
       <View style={styles.bottomNav}>
@@ -130,7 +180,7 @@ export default function App() {
 }
 
 // ---------------------------------------------------
-// CSS สไตล์ธีม Steam (เน้นสี #1b2838, #171a21, #66c0f4)
+// CSS สไตล์ธีม Steam (คงไว้ทุกสัดส่วนตามดีไซน์ของคุณ)
 // ---------------------------------------------------
 const styles = StyleSheet.create({
   container: {
@@ -172,9 +222,9 @@ const styles = StyleSheet.create({
   addButtonText: { color: '#171a21', fontSize: 14, fontWeight: 'bold' },
   filterButton: { paddingHorizontal: 5, paddingVertical: 10 },
   filterText: { color: '#66c0f4', fontSize: 14, fontWeight: '500' },
-  productsList: { flex: 1, padding: 20 },
+  productsList: { padding: 20 },
   productCard: {
-    backgroundColor: '#171a21', borderRadius: 8, padding: 15, marginBottom: 15,
+    backgroundColor: '#171a21', borderRadius: 8, padding: 15,
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3, shadowRadius: 4, elevation: 5,
   },
@@ -195,6 +245,15 @@ const styles = StyleSheet.create({
   moreButton: { width: 30, height: 30, justifyContent: 'center', alignItems: 'center' },
   moreIcon: { fontSize: 20, color: '#8f98a0' },
   productName: { fontSize: 16, fontWeight: 'bold', color: '#c7d5e0' },
+  separator: { height: 16 },
+  
+  // สไตล์เพิ่มเติมสำหรับระบบแสดงผลตอนโหลด/ขัดข้อง
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1b2838' },
+  loadingText: { marginTop: 12, color: '#66c0f4', fontSize: 14, fontWeight: '500' },
+  errorText: { color: '#f43f5e', fontSize: 16, fontWeight: 'bold', marginBottom: 15 },
+  retryButton: { backgroundColor: '#66c0f4', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 4 },
+  retryText: { color: '#171a21', fontWeight: 'bold' },
+
   bottomNav: {
     flexDirection: 'row', backgroundColor: '#171a21', paddingVertical: 10,
     borderTopWidth: 1, borderTopColor: '#000000',
