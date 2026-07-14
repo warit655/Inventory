@@ -31,7 +31,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   // 2. ลิงก์ดึงข้อมูลไฟล์ JSON โดยตรงจาก GitHub (แก้ไขให้เป็นของคุณได้เลยครับ)
-  const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/warit655/Inventory/refs/heads/master/sn_product.json?token=GHSAT0AAAAAAEBLAIRJ64SRDYEN3I2FC5FO2SWD4YQ';
+  const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/warit655/Inventory/refs/heads/master/sn_product1.json?token=GHSAT0AAAAAAEBLAIRJJKS7XONHHGAB5XJO2SWEQGQ';
 
   useEffect(() => {
     fetchProducts();
