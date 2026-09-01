@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -11,7 +12,6 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-
 // 1. ประกาศโครงสร้าง TypeScript Interface เพื่อรองรับข้อมูลจาก JSON ของอาจารย์
 interface Product {
   id: string;
@@ -31,22 +31,34 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   // 2. ลิงก์ดึงข้อมูลไฟล์ JSON โดยตรงจาก GitHub (แก้ไขให้เป็นของคุณได้เลยครับ)
-  const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/warit655/Inventory/refs/heads/master/sn_product1.json?token=GHSAT0AAAAAAEBLAIRJJKS7XONHHGAB5XJO2SWEQGQ';
+  const API_BASE_URL = 'http://119.59.102.161:3100/api';
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
+  // แก้: โหลดข้อมูลใหม่ทุกครั้งที่กลับมาที่หน้านี้ (เช่น หลังกด Save ที่หน้า Add
+  // แล้ว router.back() กลับมา) ไม่งั้นสินค้าที่เพิ่งเพิ่มจะไม่ขึ้นใน list จนกว่าจะรีเฟรชเอง
+  useFocusEffect(
+    useCallback(() => {
+      fetchProducts();
+    }, [])
+  );
+
   const fetchProducts = async () => {
     try {
-      const response = await fetch(GITHUB_JSON_URL);
+      console.log('Fetching products from:', `${API_BASE_URL}/products`);
+      const response = await fetch(`${API_BASE_URL}/products`);
       if (!response.ok) {
-        throw new Error('Failed to fetch data');
+        throw new Error(`Failed to fetch data (status ${response.status})`);
       }
       const data = await response.json();
-      setProducts(data);
+      console.log('Products loaded:', Array.isArray(data) ? data.length : data);
+      setProducts(Array.isArray(data) ? data : []);
+      setError(null);
       setLoading(false);
     } catch (err) {
+      console.error('fetchProducts error:', err);
       setError((err as Error).message);
       setLoading(false);
     }
@@ -115,7 +127,7 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#171a21" />
-      
+
       {/* Top Menu / Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.menuButton}>
@@ -138,7 +150,11 @@ export default function App() {
             editable={false}
           />
         </View>
-        <TouchableOpacity style={styles.addButton}>
+        {/* แก้: เพิ่ม onPress ให้ปุ่ม + Add บนแถบค้นหา — เดิมไม่มี จึงกดไม่ได้ */}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => router.push('/add' as never)}
+        >
           <Text style={styles.addButtonText}>+ Add</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.filterButton}>
@@ -154,6 +170,11 @@ export default function App() {
         contentContainerStyle={styles.productsList}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No products yet. Tap "+ Add" to create one.</Text>
+          </View>
+        }
       />
 
       {/* Bottom Menu */}
@@ -162,7 +183,7 @@ export default function App() {
           <Text style={styles.navIcon}>🏠</Text>
           <Text style={styles.navText}>Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/add' as never)}>
           <Text style={styles.navIcon}>➕</Text>
           <Text style={styles.navText}>Add</Text>
         </TouchableOpacity>
@@ -207,7 +228,7 @@ const styles = StyleSheet.create({
   profileIcon: { fontSize: 16, color: '#66c0f4' },
   searchContainer: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20,
-    paddingVertical: 15, backgroundColor: '#1b2838', 
+    paddingVertical: 15, backgroundColor: '#1b2838',
   },
   searchBar: {
     flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#2a475e',
@@ -222,7 +243,7 @@ const styles = StyleSheet.create({
   addButtonText: { color: '#171a21', fontSize: 14, fontWeight: 'bold' },
   filterButton: { paddingHorizontal: 5, paddingVertical: 10 },
   filterText: { color: '#66c0f4', fontSize: 14, fontWeight: '500' },
-  productsList: { padding: 20 },
+  productsList: { padding: 20, flexGrow: 1 },
   productCard: {
     backgroundColor: '#171a21', borderRadius: 8, padding: 15,
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
@@ -246,13 +267,16 @@ const styles = StyleSheet.create({
   moreIcon: { fontSize: 20, color: '#8f98a0' },
   productName: { fontSize: 16, fontWeight: 'bold', color: '#c7d5e0' },
   separator: { height: 16 },
-  
+
   // สไตล์เพิ่มเติมสำหรับระบบแสดงผลตอนโหลด/ขัดข้อง
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1b2838' },
   loadingText: { marginTop: 12, color: '#66c0f4', fontSize: 14, fontWeight: '500' },
   errorText: { color: '#f43f5e', fontSize: 16, fontWeight: 'bold', marginBottom: 15 },
   retryButton: { backgroundColor: '#66c0f4', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 4 },
   retryText: { color: '#171a21', fontWeight: 'bold' },
+
+  emptyContainer: { paddingTop: 40, alignItems: 'center' },
+  emptyText: { color: '#8f98a0', fontSize: 14 },
 
   bottomNav: {
     flexDirection: 'row', backgroundColor: '#171a21', paddingVertical: 10,
