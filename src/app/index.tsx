@@ -287,7 +287,7 @@ export default function App() {
           </View>
         </View>
 
-        {/* Search Bar */}
+       {/* Search Bar */}
         <View style={styles.searchSection}>
           <View style={styles.searchContainer}>
             <Text style={styles.searchIcon}>🔍</Text>
@@ -300,11 +300,16 @@ export default function App() {
               onSubmitEditing={handleSearch}
             />
           </View>
+          
+          {/* 💡 ปุ่มสำหรับเปิดดูระบบวิเคราะห์ของอาจารย์ */}
+          <TouchableOpacity style={styles.aiBtn} onPress={() => router.push('/ai')}>
+            <Text style={styles.aiBtnText}>🤖 AI</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/add')}>
             <Text style={styles.addBtnText}>+ ADD</Text>
           </TouchableOpacity>
         </View>
-
         {/* 💡 Feature 2: Category Filter Chips */}
         <View style={styles.filterWrapper}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterContainer}>
