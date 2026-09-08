@@ -27,27 +27,25 @@ interface Product {
 const API_BASE_URL = 'http://119.59.102.161:3100/api';
 
 export default function HomeScreen() {
+  // 💡 ย้าย userRole เข้ามาไว้ข้างในฟังก์ชันนี้
+  const [userRole, setUserRole] = useState<string>('user');
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>(''); 
   
-  // 💡 State ควบคุมเมนูและข้อมูลผู้ใช้
   const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false);
   const [currentUsername, setCurrentUsername] = useState<string>('Gamer');
-
-  // 💡 Feature 2: State สำหรับตัวกรองหมวดหมู่
   const [activeCategory, setActiveCategory] = useState<string>('All');
 
-  // 💡 Feature 3: State สำหรับ Custom Modal
   const [modalVisible, setModalVisible] = useState(false);
   const [modalConfig, setModalConfig] = useState({
     title: '',
     message: '',
-    type: 'info', // 'info' | 'confirm' | 'success' | 'error'
+    type: 'info', 
     onConfirm: () => {},
   });
 
-  // ฟังก์ชันเรียก Modal แจ้งเตือนสไตล์ Steam
   const showModal = (title: string, message: string, type: string = 'info', onConfirm: any = null) => {
     setModalConfig({ title, message, type, onConfirm });
     setModalVisible(true);
@@ -76,6 +74,9 @@ export default function HomeScreen() {
       }
       const savedName = window.localStorage.getItem('username');
       if (savedName) setCurrentUsername(savedName);
+      
+      const savedRole = window.localStorage.getItem('role');
+      if (savedRole) setUserRole(savedRole);
     }
     fetchProducts('');
   }, []));
@@ -86,13 +87,13 @@ export default function HomeScreen() {
     if (Platform.OS === 'web') {
       window.localStorage.removeItem('isLoggedIn');
       window.localStorage.removeItem('username');
+      window.localStorage.removeItem('role'); // ล้าง role ออกด้วยตอนล็อกเอาท์
     }
     setShowProfileMenu(false);
     router.replace('/login');
   };
 
   const handleDeleteProduct = (product: Product) => {
-    // 💡 ใช้ Custom Modal แทน window.confirm
     showModal(
       'DELETE GAME',
       `Are you sure you want to remove "${product.name}" from your library? This cannot be undone.`,
@@ -113,7 +114,6 @@ export default function HomeScreen() {
     );
   };
 
-  // 💡 Feature 1 & 2: คำนวณสถิติและดึงหมวดหมู่แบบอัตโนมัติ
   const totalGames = products.length;
   const inStockGames = products.filter(p => p.stock > 0).length;
   const outOfStockGames = totalGames - inStockGames;
@@ -146,15 +146,18 @@ export default function HomeScreen() {
             </Text>
           </View>
           
-          <View style={styles.productActions}>
-            <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => router.push({ pathname: '/edit', params: { ...item } })}>
-              <Text style={styles.editBtnText}>✏️ Edit</Text>
-            </TouchableOpacity>
+          {/* 💡 ซ่อนปุ่ม Edit / Delete ถ้าไม่ใช่แอดมิน */}
+          {userRole === 'admin' && (
+            <View style={styles.productActions}>
+              <TouchableOpacity style={[styles.actionBtn, styles.editBtn]} onPress={() => router.push({ pathname: '/edit', params: { ...item } })}>
+                <Text style={styles.editBtnText}>✏️ Edit</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDeleteProduct(item)}>
-              <Text style={styles.deleteBtnText}>🗑️ Delete</Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity style={[styles.actionBtn, styles.deleteBtn]} onPress={() => handleDeleteProduct(item)}>
+                <Text style={styles.deleteBtnText}>🗑️ Delete</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     );
@@ -187,7 +190,7 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* 💡 Feature 1: Dashboard Stats */}
+        {/* Dashboard Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statBox}>
             <Text style={styles.statLabel}>Total Games</Text>
@@ -203,12 +206,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-      {/* Dashboard Stats */}
-        <View style={styles.statsContainer}>
-            {/* ... (โค้ดสถิติเดิม) ... */}
-        </View>
-
-      
         {/* Search Bar */}
         <View style={styles.searchSection}>
           <View style={styles.searchContainer}>
@@ -223,18 +220,19 @@ export default function HomeScreen() {
             />
           </View>
           
-          {/* 💡 ปุ่มสำหรับเปิดดูระบบวิเคราะห์ของอาจารย์ */}
           <TouchableOpacity style={styles.aiBtn} onPress={() => router.push('/ai')}>
-            <Text style={styles.aiBtnText}> AI</Text>
+            <Text style={styles.aiBtnText}>🤖 AI</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/add')}>
-            <Text style={styles.addBtnText}>+ ADD</Text>
-          </TouchableOpacity>
+          {/* 💡 ซ่อนปุ่ม ADD ถ้าไม่ใช่แอดมิน */}
+          {userRole === 'admin' && (
+            <TouchableOpacity style={styles.addBtn} onPress={() => router.push('/add')}>
+              <Text style={styles.addBtnText}>+ ADD</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
-        {/* Filter Chips หรือ Main Content */}
-        {/* 💡 Feature 2: Category Filter Chips */}
+        {/* Filter Chips */}
         <View style={styles.filterWrapper}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterContainer}>
             {categories.map((cat, index) => (
@@ -267,7 +265,7 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* 💡 Feature 3: Custom Premium Modal Overlay */}
+        {/* Custom Premium Modal Overlay */}
         {modalVisible && (
           <View style={styles.modalOverlay}>
             <View style={styles.modalCard}>
@@ -321,7 +319,6 @@ const styles = StyleSheet.create({
   logoutBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
   logoutText: { color: '#f43f5e', fontSize: 14, fontWeight: 'bold', marginLeft: 8 },
 
-  // 📊 สไตล์ Dashboard Stats
   statsContainer: { flexDirection: 'row', padding: 20, paddingBottom: 0, gap: 15 },
   statBox: { flex: 1, backgroundColor: '#17202d', padding: 15, borderRadius: 12, borderWidth: 1, borderColor: '#1e2d3e', alignItems: 'center' },
   statLabel: { color: '#4c5b6a', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 5 },
@@ -340,7 +337,6 @@ const styles = StyleSheet.create({
   addBtn: { backgroundColor: '#a4d007', borderRadius: 12, paddingHorizontal: 20, height: 45, justifyContent: 'center', alignItems: 'center', shadowColor: '#a4d007', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 },
   addBtnText: { color: '#000000', fontSize: 14, fontWeight: 'bold', letterSpacing: 1 },
   
-  // 🏷️ สไตล์ Filter Chips
   filterWrapper: { paddingLeft: 20, paddingBottom: 10 },
   filterContainer: { paddingRight: 20, gap: 10 },
   chip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#2a475e', backgroundColor: 'transparent' },
@@ -368,7 +364,6 @@ const styles = StyleSheet.create({
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 40 },
   emptyText: { color: '#4c5b6a', fontSize: 16 },
 
-  // 🖼️ สไตล์ Custom Modal
   modalOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(14, 20, 27, 0.85)', justifyContent: 'center', alignItems: 'center', zIndex: 999, elevation: 999 },
   modalCard: { backgroundColor: '#17202d', width: '85%', maxWidth: 400, borderRadius: 16, padding: 24, borderWidth: 1, borderColor: '#2a475e', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.8, shadowRadius: 20, elevation: 15 },
   modalTitle: { fontSize: 20, fontWeight: '900', textAlign: 'center', marginBottom: 10, letterSpacing: 1 },

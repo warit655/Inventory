@@ -9,7 +9,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
-    // เช็คว่ากรอกข้อมูลครบไหมก่อนส่งไปเซิร์ฟเวอร์
     if (!username.trim() || !password.trim()) {
       if (Platform.OS === 'web') window.alert('กรุณากรอก Username และ Password');
       else Alert.alert('Error', 'กรุณากรอก Username และ Password');
@@ -25,16 +24,16 @@ export default function LoginScreen() {
       const data = await response.json();
 
       if (response.ok) {
-        // 💡 บันทึกสถานะว่า "ล็อกอินแล้ว" และ "จำชื่อผู้ใช้" ลงในเบราว์เซอร์
         if (Platform.OS === 'web') {
           window.localStorage.setItem('isLoggedIn', 'true');
-          window.localStorage.setItem('username', username);
+          window.localStorage.setItem('username', data.user.username);
+          // 💡 บันทึก role ลงเครื่อง พร้อมกำหนดค่าสำรองหากเซิร์ฟเวอร์ไม่ได้ส่งมา
+          window.localStorage.setItem('role', data.user.role || 'user'); 
           window.alert('เข้าสู่ระบบสำเร็จ!');
         } else {
           Alert.alert('Success', 'เข้าสู่ระบบสำเร็จ!');
         }
         
-        // 💡 ใช้ replace เพื่อไม่ให้กดย้อนกลับ (Back) มาหน้า Login ได้อีก
         router.replace('/'); 
       } else {
         if (Platform.OS === 'web') window.alert(data.error);
@@ -89,88 +88,16 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#0e141b', 
-    justifyContent: 'center', 
-    padding: 20 
-  },
-  card: { 
-    backgroundColor: '#17202d', 
-    padding: 30, 
-    borderRadius: 16, 
-    borderWidth: 1, 
-    borderColor: '#2a475e', 
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 10 }, 
-    shadowOpacity: 0.5, 
-    shadowRadius: 15, 
-    elevation: 8 
-  },
-  title: { 
-    fontSize: 28, 
-    fontWeight: '900', 
-    color: '#ffffff', 
-    textAlign: 'center', 
-    letterSpacing: 2 
-  },
-  subtitle: { 
-    fontSize: 12, 
-    color: '#66c0f4', 
-    textAlign: 'center', 
-    marginBottom: 30, 
-    letterSpacing: 1, 
-    fontWeight: 'bold' 
-  },
-  inputGroup: { 
-    marginBottom: 20 
-  },
-  label: { 
-    fontSize: 11, 
-    fontWeight: 'bold', 
-    color: '#4c5b6a', 
-    marginBottom: 8, 
-    textTransform: 'uppercase', 
-    letterSpacing: 1 
-  },
-  input: { 
-    backgroundColor: '#0f1722', 
-    color: '#ffffff', 
-    padding: 14, 
-    borderRadius: 10, 
-    borderWidth: 1, 
-    borderColor: '#1e2d3e', 
-    fontSize: 15, 
-    outlineStyle: 'none' 
-  },
-  mainBtn: { 
-    backgroundColor: '#66c0f4', 
-    padding: 16, 
-    borderRadius: 10, 
-    alignItems: 'center', 
-    marginTop: 10, 
-    shadowColor: '#66c0f4', 
-    shadowOffset: { width: 0, height: 4 }, 
-    shadowOpacity: 0.3, 
-    shadowRadius: 6 
-  },
-  mainBtnText: { 
-    color: '#000000', 
-    fontWeight: 'bold', 
-    fontSize: 15, 
-    letterSpacing: 1 
-  },
-  linkContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    marginTop: 25 
-  },
-  linkText: { 
-    color: '#c7d5e0', 
-    fontSize: 13, 
-    fontWeight: '600' 
-  },
-  linkHighlight: { 
-    color: '#a4d007' 
-  }
+  container: { flex: 1, backgroundColor: '#0e141b', justifyContent: 'center', padding: 20 },
+  card: { backgroundColor: '#17202d', padding: 30, borderRadius: 16, borderWidth: 1, borderColor: '#2a475e', shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 15, elevation: 8 },
+  title: { fontSize: 28, fontWeight: '900', color: '#ffffff', textAlign: 'center', letterSpacing: 2 },
+  subtitle: { fontSize: 12, color: '#66c0f4', textAlign: 'center', marginBottom: 30, letterSpacing: 1, fontWeight: 'bold' },
+  inputGroup: { marginBottom: 20 },
+  label: { fontSize: 11, fontWeight: 'bold', color: '#4c5b6a', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 },
+  input: { backgroundColor: '#0f1722', color: '#ffffff', padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#1e2d3e', fontSize: 15, outlineStyle: 'none' },
+  mainBtn: { backgroundColor: '#66c0f4', padding: 16, borderRadius: 10, alignItems: 'center', marginTop: 10, shadowColor: '#66c0f4', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 },
+  mainBtnText: { color: '#000000', fontWeight: 'bold', fontSize: 15, letterSpacing: 1 },
+  linkContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 25 },
+  linkText: { color: '#c7d5e0', fontSize: 13, fontWeight: '600' },
+  linkHighlight: { color: '#a4d007' }
 });
