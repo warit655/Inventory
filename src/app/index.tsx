@@ -211,7 +211,7 @@ export default function HomeScreen() {
           <View style={styles.searchContainer}>
             <Text style={styles.searchIcon}>🔍</Text>
             <TextInput
-              style={styles.searchInput}
+               style={styles.searchInput}
               placeholder="Search your library..."
               placeholderTextColor="#4c5b6a"
               value={searchQuery}
