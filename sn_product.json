@@ -1,0 +1,35 @@
+[
+  {
+    "id": "1",
+    "name": "PUBG: BATTLEGROUNDS",
+    "stock": 999,
+    "stock_text": "999 Players Online",
+    "category": "แอ็คชัน, ผจญภัย, ผู้เล่นหลายคนจำนวนมาก, เล่นฟรี",
+    "location_count": 1,
+    "location_text": "KRAFTON, Inc.",
+    "badge_status": "Installed",
+    "image_url": "https://tse1.mm.bing.net/th/id/OIP.Gytgjw17v3l6XITcr7fsQAHaEK?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+  },
+  {
+    "id": "2",
+    "name": "Apex Legends™",
+    "stock": 999,
+    "stock_text": "999 Players Online",
+    "category": "แอ็คชัน, ผจญภัย, เล่นฟรี",
+    "location_count": 1,
+    "location_text": "Respawn",
+    "badge_status": "In Library",
+    "image_url": "https://th.bing.com/th?id=OIF.6Xj6Y%2fsfsf4BP480Mi7ybA&r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+  },
+  {
+    "id": "3",
+    "name": "Overwatch®",
+    "stock": 999,
+    "stock_text": "999 Players Online",
+    "category": "แอ็คชัน, เล่นฟรี",
+    "location_count": 1,
+    "location_text": "Blizzard Entertainment, Inc.",
+    "badge_status": "On Sale",
+    "image_url": "https://tse1.mm.bing.net/th/id/OIF.ZKH8zatq1mtUSRnbwqsTIg?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+  }
+]
