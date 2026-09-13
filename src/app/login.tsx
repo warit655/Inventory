@@ -26,10 +26,11 @@ export default function LoginScreen() {
       if (response.ok) {
         if (Platform.OS === 'web') {
           window.localStorage.setItem('isLoggedIn', 'true');
-          window.localStorage.setItem('username', data.user.username);
-          // 💡 บันทึก role ลงเครื่อง พร้อมกำหนดค่าสำรองหากเซิร์ฟเวอร์ไม่ได้ส่งมา
-          window.localStorage.setItem('role', data.user.role || 'user'); 
-          window.alert('เข้าสู่ระบบสำเร็จ!');
+window.localStorage.setItem('username', data.user.username);
+window.localStorage.setItem('role', data.user.role || 'user');
+
+// 💡 เพิ่มบรรทัดนี้ เพื่อให้แอปจำได้ว่าใครคือเจ้าของตะกร้า
+window.localStorage.setItem('userId', data.user.id.toString());
         } else {
           Alert.alert('Success', 'เข้าสู่ระบบสำเร็จ!');
         }

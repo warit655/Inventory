@@ -1,120 +1,109 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const API_BASE_URL = 'http://119.59.102.161:3100/api';
 
 export default function AddScreen() {
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState('');
-  const [brand, setBrand] = useState('');
-  const [vram, setVram] = useState('');
-  const [serialNumber, setSerialNumber] = useState('');
-  const [stock, setStock] = useState('');
-  const [costPrice, setCostPrice] = useState('');
-  const [sellingPrice, setSellingPrice] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [formData, setFormData] = useState({ name: '', brand: '', vram: '', serial_number: '', cost_price: '', selling_price: '', stock: '', category: '', image: '' });
+  const [loading, setLoading] = useState(false);
 
-  const handleAdd = async () => {
-    if (!name.trim()) {
-      if (Platform.OS === 'web') window.alert('กรุณากรอกชื่อสินค้า');
-      else Alert.alert('Error', 'กรุณากรอกชื่อสินค้า');
-      return;
-    }
-
+  const handleSave = async () => {
+    if (!formData.name) return alert('กรุณากรอกชื่อสินค้า');
+    setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/products`, {
+      const res = await fetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name, category, brand, vram, 
-          serial_number: serialNumber, 
-          image: imageUrl,
-          stock: parseInt(stock) || 0,
-          cost_price: parseFloat(costPrice) || 0,
-          selling_price: parseFloat(sellingPrice) || 0
-        }),
+        body: JSON.stringify(formData)
       });
-
-      if (response.ok) {
-        router.back();
-      } else {
-        const data = await response.json();
-        Platform.OS === 'web' ? window.alert(data.error) : Alert.alert('Error', data.error);
-      }
+      if (res.ok) router.back();
+      else alert('บันทึกไม่สำเร็จ');
     } catch (err) {
-      Platform.OS === 'web' ? window.alert('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้') : Alert.alert('Error', 'Connection failed');
+      alert('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}><Text style={styles.backBtnText}>{'< Back'}</Text></TouchableOpacity>
-        <Text style={styles.headerTitle}>ADD NEW GPU</Text>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}><Text style={styles.backText}>← Back</Text></TouchableOpacity>
+        <Text style={styles.headerTitle}>Add New GPU</Text>
+        <View style={{ width: 60 }} />
       </View>
-      <ScrollView contentContainerStyle={styles.formContainer}>
-        <Text style={styles.label}>Product Name</Text>
-        <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="e.g. RTX 4070 Ti" placeholderTextColor="#4c5b6a" />
-        
-        <View style={styles.row}>
-          <View style={styles.halfInput}>
-            <Text style={styles.label}>Brand</Text>
-            <TextInput style={styles.input} value={brand} onChangeText={setBrand} placeholder="e.g. ASUS" placeholderTextColor="#4c5b6a" />
-          </View>
-          <View style={styles.halfInput}>
-            <Text style={styles.label}>VRAM</Text>
-            <TextInput style={styles.input} value={vram} onChangeText={setVram} placeholder="e.g. 12GB GDDR6X" placeholderTextColor="#4c5b6a" />
-          </View>
-        </View>
 
-        <Text style={styles.label}>Serial Number (S/N)</Text>
-        <TextInput style={styles.input} value={serialNumber} onChangeText={setSerialNumber} placeholder="Scan or type S/N" placeholderTextColor="#4c5b6a" />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.formCard}>
+            <Text style={styles.label}>Product Name *</Text>
+            <TextInput style={styles.input} placeholder="e.g. RTX 5090 GAMING OC" value={formData.name} onChangeText={t => setFormData({...formData, name: t})} />
 
-        <View style={styles.row}>
-          <View style={styles.halfInput}>
-            <Text style={styles.label}>Cost Price (Capital)</Text>
-            <TextInput style={styles.input} value={costPrice} onChangeText={setCostPrice} keyboardType="numeric" placeholder="0.00" placeholderTextColor="#4c5b6a" />
-          </View>
-          <View style={styles.halfInput}>
-            <Text style={styles.label}>Selling Price</Text>
-            <TextInput style={styles.input} value={sellingPrice} onChangeText={setSellingPrice} keyboardType="numeric" placeholder="0.00" placeholderTextColor="#4c5b6a" />
-          </View>
-        </View>
+            <View style={styles.row}>
+              <View style={styles.half}>
+                <Text style={styles.label}>Brand</Text>
+                <TextInput style={styles.input} placeholder="e.g. GIGABYTE" value={formData.brand} onChangeText={t => setFormData({...formData, brand: t})} />
+              </View>
+              <View style={styles.half}>
+                <Text style={styles.label}>VRAM</Text>
+                <TextInput style={styles.input} placeholder="e.g. 32GB" value={formData.vram} onChangeText={t => setFormData({...formData, vram: t})} />
+              </View>
+            </View>
 
-        <View style={styles.row}>
-          <View style={styles.halfInput}>
-            <Text style={styles.label}>Stock Quantity</Text>
-            <TextInput style={styles.input} value={stock} onChangeText={setStock} keyboardType="numeric" placeholder="0" placeholderTextColor="#4c5b6a" />
-          </View>
-          <View style={styles.halfInput}>
-            <Text style={styles.label}>Category</Text>
-            <TextInput style={styles.input} value={category} onChangeText={setCategory} placeholder="e.g. GPU" placeholderTextColor="#4c5b6a" />
-          </View>
-        </View>
+            <Text style={styles.label}>Serial Number (S/N)</Text>
+            <TextInput style={styles.input} placeholder="Scan or type S/N" value={formData.serial_number} onChangeText={t => setFormData({...formData, serial_number: t})} />
 
-        <Text style={styles.label}>Image URL</Text>
-        <TextInput style={styles.input} value={imageUrl} onChangeText={setImageUrl} placeholder="https://..." placeholderTextColor="#4c5b6a" />
+            <View style={styles.row}>
+              <View style={styles.half}>
+                <Text style={styles.label}>Cost Price</Text>
+                <TextInput style={styles.input} placeholder="0.00" keyboardType="numeric" value={formData.cost_price} onChangeText={t => setFormData({...formData, cost_price: t})} />
+              </View>
+              <View style={styles.half}>
+                <Text style={styles.label}>Selling Price</Text>
+                <TextInput style={styles.input} placeholder="0.00" keyboardType="numeric" value={formData.selling_price} onChangeText={t => setFormData({...formData, selling_price: t})} />
+              </View>
+            </View>
 
-        <TouchableOpacity style={styles.saveBtn} onPress={handleAdd}>
-          <Text style={styles.saveBtnText}>Save Product</Text>
+            <View style={styles.row}>
+              <View style={styles.half}>
+                <Text style={styles.label}>Stock Quantity</Text>
+                <TextInput style={styles.input} placeholder="0" keyboardType="numeric" value={formData.stock} onChangeText={t => setFormData({...formData, stock: t})} />
+              </View>
+              <View style={styles.half}>
+                <Text style={styles.label}>Category</Text>
+                <TextInput style={styles.input} placeholder="e.g. GPU" value={formData.category} onChangeText={t => setFormData({...formData, category: t})} />
+              </View>
+            </View>
+
+            <Text style={styles.label}>Image URL</Text>
+            <TextInput style={styles.input} placeholder="https://..." value={formData.image} onChangeText={t => setFormData({...formData, image: t})} />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity style={[styles.saveBtn, loading && { opacity: 0.7 }]} onPress={handleSave} disabled={loading}>
+          <Text style={styles.saveBtnText}>{loading ? 'Saving...' : 'Add Product'}</Text>
         </TouchableOpacity>
-      </ScrollView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0e141b' },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: Platform.OS === 'web' ? 30 : 20, backgroundColor: '#0f1722', borderBottomWidth: 1, borderBottomColor: '#1e2d3e' },
-  backBtn: { marginRight: 15 },
-  backBtnText: { color: '#66c0f4', fontSize: 16, fontWeight: 'bold' },
-  headerTitle: { fontSize: 20, fontWeight: '900', color: '#ffffff', letterSpacing: 1 },
-  formContainer: { padding: 20 },
+  container: { flex: 1, backgroundColor: '#F4F6F9' },
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, paddingTop: Platform.OS === 'web' ? 30 : 20, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
+  backBtn: { paddingVertical: 8, paddingRight: 15 },
+  backText: { color: '#6B7280', fontSize: 16, fontWeight: '600' },
+  headerTitle: { fontSize: 18, fontWeight: '800', color: '#111827' },
+  scrollContent: { padding: 20, paddingBottom: 40 },
+  formCard: { backgroundColor: '#FFFFFF', padding: 20, borderRadius: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2 },
+  label: { fontSize: 13, fontWeight: '700', color: '#4B5563', marginBottom: 8, marginTop: 15, textTransform: 'uppercase' },
+  input: { backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10, padding: 14, fontSize: 15, color: '#111827', outlineStyle: 'none' },
   row: { flexDirection: 'row', gap: 15 },
-  halfInput: { flex: 1 },
-  label: { fontSize: 12, fontWeight: 'bold', color: '#4c5b6a', marginBottom: 8, marginTop: 15, textTransform: 'uppercase' },
-  input: { backgroundColor: '#17202d', color: '#ffffff', padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#2a475e', fontSize: 15, outlineStyle: 'none' },
-  saveBtn: { backgroundColor: '#a4d007', padding: 16, borderRadius: 10, alignItems: 'center', marginTop: 30, shadowColor: '#a4d007', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 6 },
-  saveBtnText: { color: '#000000', fontWeight: 'bold', fontSize: 16, letterSpacing: 1 }
+  half: { flex: 1 },
+  footer: { padding: 20, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB' },
+  saveBtn: { backgroundColor: '#3B82F6', padding: 16, borderRadius: 12, alignItems: 'center', shadowColor: '#3B82F6', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
+  saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' }
 });
