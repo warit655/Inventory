@@ -139,7 +139,7 @@ export default function HomeScreen() {
   
   const getAITag = (tier?: number) => {
     if (tier === 0) return { title: 'Budget', color: '#10B981', bg: '#D1FAE5' };
-    if (tier === 1) return { title: 'Mainstream', color: '#3B82F6', bg: '#DBEAFE' };
+    if (tier === 1) return { title: 'Mainstream', color: '#cc1313', bg: '#DBEAFE' };
     if (tier === 2) return { title: 'High-End', color: '#8B5CF6', bg: '#EDE9FE' };
     return null;
   };
@@ -155,7 +155,7 @@ export default function HomeScreen() {
             <Text style={styles.productName} numberOfLines={1}>{item.name}</Text>
             <Text style={styles.detailText}>{item.brand || 'N/A'} • VRAM: {item.vram || '-'}</Text>
             <Text style={styles.snText}>S/N: {item.serial_number || '-'}</Text>
-            {aiTag && (<View style={[styles.aiBadge, { backgroundColor: aiTag.bg }]}><Text style={[styles.aiBadgeText, { color: aiTag.color }]}>✨ AI: {aiTag.title}</Text></View>)}
+            {aiTag && (<View style={[styles.aiBadge, { backgroundColor: aiTag.bg }]}><Text style={[styles.aiBadgeText, { color: aiTag.color }]}>:D AI: {aiTag.title}</Text></View>)}
           </View>
           <View style={styles.priceContainer}>
             <Text style={styles.priceText}>฿{item.selling_price ? Number(item.selling_price).toLocaleString() : '0'}</Text>
